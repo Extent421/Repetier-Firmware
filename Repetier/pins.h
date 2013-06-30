@@ -964,20 +964,20 @@ STEPPER_CURRENT_CONTROL
 #define X_STEP_PIN         28
 #define X_DIR_PIN          29
 #define X_ENABLE_PIN       19
-#define X_MIN_PIN          47
-#define X_MAX_PIN          -1
+#define X_MIN_PIN          -1
+#define X_MAX_PIN          47
 
 #define Y_STEP_PIN         30
 #define Y_DIR_PIN          31
 #define Y_ENABLE_PIN       18
-#define Y_MIN_PIN           20 // Don't use this if you want to use SD card. Use 37 and put the endstop in the e-stop slot!!!
-#define Y_MAX_PIN          -1
+#define Y_MIN_PIN           -1 // Don't use this if you want to use SD card. Use 37 and put the endstop in the e-stop slot!!!
+#define Y_MAX_PIN          20
 
 #define Z_STEP_PIN         32
 #define Z_DIR_PIN          33
 #define Z_ENABLE_PIN       17
-#define Z_MIN_PIN          36
-#define Z_MAX_PIN          -1
+#define Z_MIN_PIN          -1
+#define Z_MAX_PIN          36
 
 #define E0_STEP_PIN         34
 #define E0_DIR_PIN          35

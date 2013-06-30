@@ -133,7 +133,20 @@ void home_axis(bool xaxis,bool yaxis,bool zaxis) {
       printer_state.currentPositionSteps[1] = 0;
       printer_state.currentPositionSteps[2] = printer_state.zMaxSteps;
       calculate_delta(printer_state.currentPositionSteps, printer_state.currentDeltaPositionSteps);
-      printer_state.maxDeltaPositionSteps = printer_state.currentDeltaPositionSteps[0];
+
+      //update our delta state based on our end stop soft trimming
+      printer_state.currentDeltaPositionSteps[0] -= axis_steps_per_unit[0]*printer_state.tower1_trim;
+      printer_state.currentDeltaPositionSteps[1] -= axis_steps_per_unit[0]*printer_state.tower2_trim;
+      printer_state.currentDeltaPositionSteps[2] -= axis_steps_per_unit[0]*printer_state.tower3_trim;
+
+      //set max delta steps based on the tallest tower
+      printer_state.maxDeltaPositionSteps = max(printer_state.currentDeltaPositionSteps[0], printer_state.currentDeltaPositionSteps[1]);
+      printer_state.maxDeltaPositionSteps = max(printer_state.maxDeltaPositionSteps, printer_state.currentDeltaPositionSteps[2]);
+
+      //move down in Z equal to the largest trim value, this re-syncs the cartesian and delta 
+      move_steps(0,0,axis_steps_per_unit[0]*-(max(printer_state.tower1_trim,max(printer_state.tower2_trim,printer_state.tower3_trim))),0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, false);
+
+
     } else {
       if (xaxis) printer_state.destinationSteps[0] = 0;
       if (yaxis) printer_state.destinationSteps[1] = 0;
@@ -810,7 +823,7 @@ void process_command(GCode *com,byte bufferedCommand)
         break;
       case 115: {// M115
 #if DRIVE_SYSTEM==3
-        out.println_P(PSTR("FIRMWARE_NAME:Repetier_" REPETIER_VERSION " FIRMWARE_URL:https://github.com/repetier/Repetier-Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Rostock EXTRUDER_COUNT:" XSTR(NUM_EXTRUDER) " REPETIER_PROTOCOL:2"));
+        out.println_P(PSTR("FIRMWARE_NAME:Repetier_" REPETIER_VERSION " SoftLevel Test FIRMWARE_URL:https://github.com/repetier/Repetier-Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Rostock  EXTRUDER_COUNT:" XSTR(NUM_EXTRUDER) " REPETIER_PROTOCOL:2"));
 #else
 #if DRIVE_SYSTEM==0
         out.println_P(PSTR("FIRMWARE_NAME:Repetier_" REPETIER_VERSION " FIRMWARE_URL:https://github.com/repetier/Repetier-Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:" XSTR(NUM_EXTRUDER) " REPETIER_PROTOCOL:2"));

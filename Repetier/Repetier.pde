@@ -501,6 +501,17 @@ SET_OUTPUT(ANALYZER_CH7);
   printer_state.currentPositionSteps[0] = printer_state.currentPositionSteps[1] = printer_state.currentPositionSteps[2] = printer_state.currentPositionSteps[3] = 0;
 #if DRIVE_SYSTEM==3
   calculate_delta(printer_state.currentPositionSteps, printer_state.currentDeltaPositionSteps);
+  printer_state.tower1_trim = TOWER1_TRIM;
+  printer_state.tower2_trim = TOWER2_TRIM;
+  printer_state.tower3_trim = TOWER3_TRIM;
+  printer_state.delta_radius = DELTA_RADIUS;
+  printer_state.delta_radius_steps = AXIS_STEPS_PER_MM * printer_state.delta_radius;
+  printer_state.delta_tower1_x_steps = -SIN_60*printer_state.delta_radius_steps;
+  printer_state.delta_tower1_y_steps = -COS_60*printer_state.delta_radius_steps;
+  printer_state.delta_tower2_x_steps = SIN_60*printer_state.delta_radius_steps;
+  printer_state.delta_tower2_y_steps = -COS_60*printer_state.delta_radius_steps;
+  printer_state.delta_tower3_x_steps = 0.0;
+  printer_state.delta_tower3_y_steps = printer_state.delta_radius_steps;
 #endif
   printer_state.maxJerk = MAX_JERK;
   printer_state.maxZJerk = MAX_ZJERK;

@@ -971,21 +971,21 @@ inline void set_delta_position(long xaxis, long yaxis, long zaxis) {
 */
 byte calculate_delta(long cartesianPosSteps[], long deltaPosSteps[]) {
 	long temp;
-	long opt = DELTA_DIAGONAL_ROD_STEPS_SQUARED - sq(DELTA_TOWER1_Y_STEPS - cartesianPosSteps[Y_AXIS]);
+	long opt = DELTA_DIAGONAL_ROD_STEPS_SQUARED - sq(printer_state.delta_tower1_y_steps - cartesianPosSteps[Y_AXIS]);
 
-	if ((temp = opt - sq(DELTA_TOWER1_X_STEPS - cartesianPosSteps[X_AXIS])) >= 0)
+	if ((temp = opt - sq(printer_state.delta_tower1_x_steps - cartesianPosSteps[X_AXIS])) >= 0)
 		deltaPosSteps[X_AXIS] = sqrt(temp) + cartesianPosSteps[Z_AXIS];
 	else
 		return 0;
 
-	if ((temp = opt - sq(DELTA_TOWER2_X_STEPS - cartesianPosSteps[X_AXIS])) >= 0)
+	if ((temp = opt - sq(printer_state.delta_tower2_x_steps - cartesianPosSteps[X_AXIS])) >= 0)
 		deltaPosSteps[Y_AXIS] = sqrt(temp) + cartesianPosSteps[Z_AXIS];
 	else
 		return 0;
 
 	if ((temp = DELTA_DIAGONAL_ROD_STEPS_SQUARED
-		 - sq(DELTA_TOWER3_X_STEPS - cartesianPosSteps[X_AXIS])
-		 - sq(DELTA_TOWER3_Y_STEPS - cartesianPosSteps[Y_AXIS])) >= 0)
+		 - sq(printer_state.delta_tower3_x_steps - cartesianPosSteps[X_AXIS])
+		 - sq(printer_state.delta_tower3_y_steps - cartesianPosSteps[Y_AXIS])) >= 0)
 		deltaPosSteps[Z_AXIS] = sqrt(temp) + cartesianPosSteps[Z_AXIS];
 	else
 		return 0;

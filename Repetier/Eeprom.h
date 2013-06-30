@@ -76,6 +76,10 @@ have problems with other modules using the eeprom */
 #define EPR_BACKLASH_X            157
 #define EPR_BACKLASH_Y            161
 #define EPR_BACKLASH_Z            165
+#define EPR_TOWER1_TRIM           169
+#define EPR_TOWER2_TRIM           173
+#define EPR_TOWER3_TRIM           177
+#define EPR_DELTA_RADIUS          181
 
 #define EEPROM_EXTRUDER_OFFSET 200
 // bytes per extruder needed, leave some space for future development

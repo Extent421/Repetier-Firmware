@@ -352,6 +352,14 @@ void epr_eeprom_reset() {
   e->advanceL = EXT5_ADVANCE_L;
 #endif
 #endif // NUM_EXTRUDER > 5
+
+#if DRIVE_SYSTEM==3
+  printer_state.tower1_trim = TOWER1_TRIM;
+  printer_state.tower2_trim = TOWER2_TRIM;
+  printer_state.tower3_trim = TOWER3_TRIM;
+  printer_state.delta_radius = DELTA_RADIUS;
+#endif
+
   extruder_select(current_extruder->id);
   update_ramps_parameter();
   initHeatedBed();
@@ -383,6 +391,12 @@ void epr_data_to_eeprom(byte corrupted) {
   epr_set_float(EPR_Y_MAX_TRAVEL_ACCEL,max_travel_acceleration_units_per_sq_second[1]);
   epr_set_float(EPR_Z_MAX_TRAVEL_ACCEL,max_travel_acceleration_units_per_sq_second[2]);
 #endif
+#if DRIVE_SYSTEM==3
+  epr_set_float(EPR_TOWER1_TRIM,printer_state.tower1_trim);
+  epr_set_float(EPR_TOWER2_TRIM,printer_state.tower2_trim);
+  epr_set_float(EPR_TOWER3_TRIM,printer_state.tower3_trim);
+  epr_set_float(EPR_DELTA_RADIUS,printer_state.delta_radius);
+#endif  
 #if USE_OPS==1
   epr_set_float(EPR_OPS_MIN_DISTANCE,printer_state.opsMinDistance);
   epr_set_byte(EPR_OPS_MODE,printer_state.opsMode);
@@ -499,6 +513,28 @@ void epr_eeprom_to_data() {
   homing_feedrate[2] = epr_get_float(EPR_Z_HOMING_FEEDRATE);
   printer_state.maxJerk = epr_get_float(EPR_MAX_JERK);
   printer_state.maxZJerk = epr_get_float(EPR_MAX_ZJERK);
+#if DRIVE_SYSTEM==3
+  printer_state.tower1_trim = epr_get_float(EPR_TOWER1_TRIM);
+  printer_state.tower2_trim = epr_get_float(EPR_TOWER2_TRIM);
+  printer_state.tower3_trim = epr_get_float(EPR_TOWER3_TRIM);
+  printer_state.delta_radius = epr_get_float(EPR_DELTA_RADIUS);
+  printer_state.delta_radius_steps = AXIS_STEPS_PER_MM * printer_state.delta_radius;
+  printer_state.delta_tower1_x_steps = -SIN_60*printer_state.delta_radius_steps;
+  printer_state.delta_tower1_y_steps = -COS_60*printer_state.delta_radius_steps;
+  printer_state.delta_tower2_x_steps = SIN_60*printer_state.delta_radius_steps;
+  printer_state.delta_tower2_y_steps = -COS_60*printer_state.delta_radius_steps;
+  printer_state.delta_tower3_x_steps = 0.0;
+  printer_state.delta_tower3_y_steps = printer_state.delta_radius_steps;
+  //define DELTA_RADIUS_STEPS (AXIS_STEPS_PER_MM * DELTA_RADIUS)
+
+  //#define DELTA_TOWER1_X_STEPS -SIN_60*DELTA_RADIUS_STEPS
+  //#define DELTA_TOWER1_Y_STEPS -COS_60*DELTA_RADIUS_STEPS
+  //#define DELTA_TOWER2_X_STEPS SIN_60*DELTA_RADIUS_STEPS
+  //#define DELTA_TOWER2_Y_STEPS -COS_60*DELTA_RADIUS_STEPS
+  //#define DELTA_TOWER3_X_STEPS 0.0
+  //#define DELTA_TOWER3_Y_STEPS DELTA_RADIUS_STEPS
+
+#endif   
 #ifdef RAMP_ACCELERATION
   max_acceleration_units_per_sq_second[0] = epr_get_float(EPR_X_MAX_ACCEL);
   max_acceleration_units_per_sq_second[1] = epr_get_float(EPR_Y_MAX_ACCEL);
@@ -657,7 +693,12 @@ void epr_output_settings() {
   epr_out_float(EPR_BACKLASH_Y,PSTR("Y backlash [mm]"));
   epr_out_float(EPR_BACKLASH_Z,PSTR("Z backlash [mm]"));
 #endif
-
+#if DRIVE_SYSTEM==3
+  epr_out_float(EPR_TOWER1_TRIM,PSTR("X tower soft home offset [mm]"));
+  epr_out_float(EPR_TOWER2_TRIM,PSTR("Y tower soft home offset [mm]"));
+  epr_out_float(EPR_TOWER3_TRIM,PSTR("Z tower soft home offset [mm]"));
+  epr_out_float(EPR_DELTA_RADIUS,PSTR("delta radius [mm]"));
+#endif  
 #ifdef RAMP_ACCELERATION
   //epr_out_float(EPR_X_MAX_START_SPEED,PSTR("X-axis start speed [mm/s]"));
   //epr_out_float(EPR_Y_MAX_START_SPEED,PSTR("Y-axis start speed [mm/s]"));
@@ -669,6 +710,7 @@ void epr_output_settings() {
   epr_out_float(EPR_Y_MAX_TRAVEL_ACCEL,PSTR("Y-axis travel acceleration [mm/s^2]"));
   epr_out_float(EPR_Z_MAX_TRAVEL_ACCEL,PSTR("Z-axis travel acceleration [mm/s^2]"));
 #endif
+
 #if USE_OPS==1
   epr_out_byte(EPR_OPS_MODE,PSTR("OPS operation mode [0=Off,1=Classic,2=Fast]"));
   epr_out_float(EPR_OPS_MOVE_AFTER,PSTR("OPS move after x% retract [%]"));

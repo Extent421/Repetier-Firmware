@@ -665,6 +665,19 @@ typedef struct {
 #ifdef STEP_COUNTER
   long countZSteps;					///< Count of steps from last position reset
 #endif
+
+  float tower1_trim;
+  float tower2_trim;
+  float tower3_trim;
+  float delta_radius;
+  float delta_radius_steps;
+  float delta_tower1_x_steps;
+  float delta_tower1_y_steps;
+  float delta_tower2_x_steps;
+  float delta_tower2_y_steps;
+  float delta_tower3_x_steps;
+  float delta_tower3_y_steps;
+
   long currentDeltaPositionSteps[4];
   long maxDeltaPositionSteps;
 #endif
