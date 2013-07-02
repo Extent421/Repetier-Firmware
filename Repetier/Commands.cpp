@@ -111,6 +111,112 @@ int get_fan_speed() {
   return (int)pwm_pos[NUM_EXTRUDER+2];
 }
 #if DRIVE_SYSTEM==3
+
+void probe_bed(){
+
+  long originHeight = 0;
+  long tower1Height = 0;
+  long tower2Height = 0;
+  long tower3Height = 0;
+  float targetX = 0;
+  float targetY = 0;
+  // home axis
+  //home_axis(true,true,true);
+  // deploy probe
+  //invert probe endstop logic
+  printer_state.probing = true;
+
+  //probe min z height at 0,0
+  printer_state.countZSteps = 0;
+  move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
+  //printer_state.destinationSteps[0] = 0;
+  //printer_state.destinationSteps[1] = 0;
+  //printer_state.destinationSteps[2] = 20*axis_steps_per_unit[0] ;//TODO origin probe + highest trim
+  //split_delta_move(true,false,false);
+
+  //record min z height
+  originHeight = printer_state.countZSteps;
+  OUT_P_L_LN("origin:", originHeight); 
+#define PROBE_LIFT  15
+#define PROBE_RADIUS  100
+  //lift 30mm Z
+  targetY = PROBE_RADIUS * cos(240 * DEG_TO_RAD);
+  targetX = PROBE_RADIUS * sin(240 * DEG_TO_RAD);
+
+  move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,homing_feedrate[0], true, false);
+  move_steps(targetX*axis_steps_per_unit[0],targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
+  printer_state.countZSteps = 0;
+  //probe tower 1 
+  move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
+  //record tower 1 level
+  tower1Height = printer_state.countZSteps + originHeight + PROBE_LIFT*axis_steps_per_unit[0];
+
+  //lift 30mm Z
+  move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,homing_feedrate[0], true, false);
+  move_steps(-targetX*axis_steps_per_unit[0],-targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
+  targetY = (PROBE_RADIUS * cos(120 * DEG_TO_RAD));
+  targetX = (PROBE_RADIUS * sin(120 * DEG_TO_RAD));
+
+  move_steps(targetX*axis_steps_per_unit[0],targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
+  printer_state.countZSteps = 0;
+  //probe tower 2 
+  move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
+  //record tower 2 level
+  tower2Height = printer_state.countZSteps + tower1Height + PROBE_LIFT*axis_steps_per_unit[0];
+
+  //lift 30mm Z
+  move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,homing_feedrate[0], true, false);
+  move_steps(-targetX*axis_steps_per_unit[0],-targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
+  targetY =  (PROBE_RADIUS * cos(0 * DEG_TO_RAD));
+  targetX =  (PROBE_RADIUS * sin(0 * DEG_TO_RAD));
+  move_steps(targetX*axis_steps_per_unit[0],targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
+  printer_state.countZSteps = 0;
+  //probe tower 3 
+  move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
+  //record tower 3 level
+  tower3Height = printer_state.countZSteps + tower2Height + PROBE_LIFT*axis_steps_per_unit[0];
+
+  //retract probe
+  move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,homing_feedrate[0], true, false);
+  move_steps(-targetX*axis_steps_per_unit[0],-targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
+  move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true); // lower until probe contacts
+  move_steps(0,0,-10*axis_steps_per_unit[0],0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, false); // push probe retraction amount
+
+  //return probe endstop logic to normal
+  printer_state.probing = false;
+
+  //calculate 3 tower trim levels
+  OUT_P_FX_LN("Origin Height:", originHeight/axis_steps_per_unit[0], 3); 
+  long lowestTower = min(tower1Height,min(tower2Height,tower3Height));
+  OUT_P_FX_LN("T1D:", (tower1Height-lowestTower) / axis_steps_per_unit[0], 3); 
+  OUT_P_FX_LN("T2D:", (tower2Height-lowestTower) / axis_steps_per_unit[0], 3); 
+  OUT_P_FX_LN("T3D:", (tower3Height-lowestTower) / axis_steps_per_unit[0], 3); 
+
+  OUT_P_FX_LN("T1CV:", ((tower1Height-lowestTower) / axis_steps_per_unit[0])* ( printer_state.delta_radius/ PROBE_RADIUS), 3); 
+  OUT_P_FX_LN("T2CV:", ((tower2Height-lowestTower) / axis_steps_per_unit[0])* ( printer_state.delta_radius/ PROBE_RADIUS), 3); 
+  OUT_P_FX_LN("T3CV:", ((tower3Height-lowestTower) / axis_steps_per_unit[0])* ( printer_state.delta_radius/ PROBE_RADIUS), 3); 
+
+  //check if origin is on plane with tower probes
+  float centerAverage = (tower1Height + tower2Height + tower3Height)/3;
+  OUT_P_FX_LN("Origin Offset:", (centerAverage - originHeight)/axis_steps_per_unit[0], 3); 
+
+  //if not calculate new delta radius
+  //apply trim levels
+  //home axis 
+  //end
+
+  //if it is
+  //move to origin, at z= greatest trim amount
+  //printer_state.destinationSteps[0] = 0;
+  //printer_state.destinationSteps[1] = 0;
+  //printer_state.destinationSteps[2] = 0;//TODO origin probe + highest trim
+  //split_delta_move(true,false,false);
+  //apply trim levels
+  //move to z0
+  //end
+
+}
+
 void delta_move_to_top_endstops(float feedrate) {
   long up_steps = printer_state.zMaxSteps;
   for (byte i=0; i<3; i++)
@@ -120,7 +226,6 @@ void delta_move_to_top_endstops(float feedrate) {
 }
 
 void home_axis(bool xaxis,bool yaxis,bool zaxis) {
-  long steps;
   bool homeallaxis = (xaxis && yaxis && zaxis) || (!xaxis && !yaxis && !zaxis);
   if (X_MAX_PIN > -1 && Y_MAX_PIN > -1 && Z_MAX_PIN > -1 && MAX_HARDWARE_ENDSTOP_X & MAX_HARDWARE_ENDSTOP_Y && MAX_HARDWARE_ENDSTOP_Z) {
     UI_STATUS_UPD(UI_TEXT_HOME_DELTA);
@@ -134,16 +239,16 @@ void home_axis(bool xaxis,bool yaxis,bool zaxis) {
       printer_state.currentPositionSteps[2] = printer_state.zMaxSteps;
       calculate_delta(printer_state.currentPositionSteps, printer_state.currentDeltaPositionSteps);
 
-      //update our delta state based on our end stop soft trimming
+      //update our delta state based on our end-stop soft trimming
       printer_state.currentDeltaPositionSteps[0] -= axis_steps_per_unit[0]*printer_state.tower1_trim;
       printer_state.currentDeltaPositionSteps[1] -= axis_steps_per_unit[0]*printer_state.tower2_trim;
       printer_state.currentDeltaPositionSteps[2] -= axis_steps_per_unit[0]*printer_state.tower3_trim;
 
-      //set max delta steps based on the tallest tower
+      //set max delta steps based on the tallest tower incase all 3 towers have trim values applied for some reason
       printer_state.maxDeltaPositionSteps = max(printer_state.currentDeltaPositionSteps[0], printer_state.currentDeltaPositionSteps[1]);
       printer_state.maxDeltaPositionSteps = max(printer_state.maxDeltaPositionSteps, printer_state.currentDeltaPositionSteps[2]);
 
-      //move down in Z equal to the largest trim value, this re-syncs the cartesian and delta 
+      //move down in Z equal to the largest trim value, this re-syncs the cartesian and delta states
       move_steps(0,0,axis_steps_per_unit[0]*-(max(printer_state.tower1_trim,max(printer_state.tower2_trim,printer_state.tower3_trim))),0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, false);
 
 
@@ -546,6 +651,9 @@ void process_command(GCode *com,byte bufferedCommand)
           byte home_all_axis = (GCODE_HAS_NO_XYZ(com));
           home_axis(home_all_axis || GCODE_HAS_X(com),home_all_axis || GCODE_HAS_Y(com),home_all_axis || GCODE_HAS_Z(com));
 		}
+        break;
+      case 32: //G32 autoprobe and update
+        probe_bed();
         break;
       case 90: // G90
         relative_mode = false;

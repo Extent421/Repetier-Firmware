@@ -42,6 +42,7 @@ Implemented Codes
 - G20 - Units for G0/G1 are inches.
 - G21 - Units for G0/G1 are mm.
 - G28 - Home all axis or named axis.
+- G32 - probe bed and auto calibrate (delta only)
 - G90 - Use absolute coordinates
 - G91 - Use relative coordinates
 - G92 - Set current position to cordinates given
@@ -512,6 +513,7 @@ SET_OUTPUT(ANALYZER_CH7);
   printer_state.delta_tower2_y_steps = -COS_60*printer_state.delta_radius_steps;
   printer_state.delta_tower3_x_steps = 0.0;
   printer_state.delta_tower3_y_steps = printer_state.delta_radius_steps;
+  printer_state.probing = false;
 #endif
   printer_state.maxJerk = MAX_JERK;
   printer_state.maxZJerk = MAX_ZJERK;
@@ -1274,12 +1276,23 @@ inline long bresenham_step() {
 				cur->dir&=~32;
 			}
 	#endif
-	#if Z_MAX_PIN>-1 && MAX_HARDWARE_ENDSTOP_Z
-			if((curd->dir & 68)==68) if(READ(Z_MAX_PIN)!= ENDSTOP_Z_MAX_INVERTING) {
-				curd->dir&=~64;
-				cur->dir&=~64;
-			}
-	#endif
+  #if Z_MAX_PIN>-1 && MAX_HARDWARE_ENDSTOP_Z
+      if((curd->dir & 68)==68) if(READ(Z_MAX_PIN)!= ENDSTOP_Z_MAX_INVERTING) {
+        curd->dir&=~64;
+        cur->dir&=~64;
+      }
+  #endif
+  #if Z_MIN_PIN>-1 && MIN_HARDWARE_ENDSTOP_Z
+      if((curd->dir & 64)==64) if(READ(Z_MIN_PIN)!= (ENDSTOP_Z_MIN_INVERTING ^ printer_state.probing)) {
+        //stop all axis if z-min (bed probe) is triggered
+        curd->dir&=~17;
+        cur->dir&=~17;
+        curd->dir&=~34;
+        cur->dir&=~34;
+        curd->dir&=~68;
+        cur->dir&=~68;
+      }
+  #endif      
 		}
 	}
 	byte max_loops = (printer_state.stepper_loops<=cur->stepsRemaining ? printer_state.stepper_loops : cur->stepsRemaining);
@@ -1913,7 +1926,7 @@ OUT_P_L_LN("MSteps:",cur->stepsRemaining);
 		}
 #endif
    }
-   // Test Z-Axis every step if necessary, otherwise it could easyly ruin your printer!
+   // Test Z-Axis every step if necessary, otherwise it could easily ruin your printer!
 #if Z_MIN_PIN>-1 && MIN_HARDWARE_ENDSTOP_Z
    if((cur->dir & 68)==64) if(READ(Z_MIN_PIN) != ENDSTOP_Z_MIN_INVERTING) {cur->dir&=~64;}
 #endif

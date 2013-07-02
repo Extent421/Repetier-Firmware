@@ -666,6 +666,7 @@ typedef struct {
   long countZSteps;					///< Count of steps from last position reset
 #endif
 
+  bool probing;
   float tower1_trim;
   float tower2_trim;
   float tower3_trim;

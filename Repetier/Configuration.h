@@ -600,11 +600,11 @@ on this endstop.
 #define ENDSTOP_Y_MAX_INVERTING false
 #define ENDSTOP_Z_MAX_INVERTING false
 
-// Set the values true where you have a hardware endstop. The Pin numbe ris taken from pins.h.
+// Set the values true where you have a hardware endstop. The Pin number is taken from pins.h.
 
 #define MIN_HARDWARE_ENDSTOP_X false
 #define MIN_HARDWARE_ENDSTOP_Y false
-#define MIN_HARDWARE_ENDSTOP_Z false
+#define MIN_HARDWARE_ENDSTOP_Z true
 #define MAX_HARDWARE_ENDSTOP_X true
 #define MAX_HARDWARE_ENDSTOP_Y true
 #define MAX_HARDWARE_ENDSTOP_Z true
@@ -732,6 +732,8 @@ on this endstop.
 /** \brief Experimental calibration utility for delta printers
 */
 #define SOFTWARE_LEVELING
+
+
 
 /** \tower trim offsets from home position for software leveling
     Overridden if EEPROM activated.
