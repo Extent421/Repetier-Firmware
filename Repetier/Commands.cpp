@@ -113,6 +113,10 @@ int get_fan_speed() {
 #if DRIVE_SYSTEM==3
 
 void probe_bed(){
+  #define PROBE_LIFT  15
+  #define PROBE_RADIUS  90
+  #define PROBE_RETRACT_DISTANCE 10
+  #define PROBE_TIP_OFFSET 0.0
 
   long originHeight = 0;
   long tower1Height = 0;
@@ -123,98 +127,102 @@ void probe_bed(){
   // home axis
   //home_axis(true,true,true);
   // deploy probe
-  //invert probe endstop logic
-  printer_state.probing = true;
+  if(READ(Z_MIN_PIN)!= (ENDSTOP_Z_MIN_INVERTING ^ printer_state.probing)) {
 
-  //probe min z height at 0,0
-  printer_state.countZSteps = 0;
-  move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
-  //printer_state.destinationSteps[0] = 0;
-  //printer_state.destinationSteps[1] = 0;
-  //printer_state.destinationSteps[2] = 20*axis_steps_per_unit[0] ;//TODO origin probe + highest trim
-  //split_delta_move(true,false,false);
+    //invert probe endstop logic
+    printer_state.probing = true;
 
-  //record min z height
-  originHeight = printer_state.countZSteps;
-  OUT_P_L_LN("origin:", originHeight); 
-#define PROBE_LIFT  15
-#define PROBE_RADIUS  100
-  //lift 30mm Z
-  targetY = PROBE_RADIUS * cos(240 * DEG_TO_RAD);
-  targetX = PROBE_RADIUS * sin(240 * DEG_TO_RAD);
+    //probe min z height at 0,0
+    printer_state.countZSteps = 0;
+    move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
+    //printer_state.destinationSteps[0] = 0;
+    //printer_state.destinationSteps[1] = 0;
+    //printer_state.destinationSteps[2] = 20*axis_steps_per_unit[0] ;//TODO origin probe + highest trim
+    //split_delta_move(true,false,false);
 
-  move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,homing_feedrate[0], true, false);
-  move_steps(targetX*axis_steps_per_unit[0],targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
-  printer_state.countZSteps = 0;
-  //probe tower 1 
-  move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
-  //record tower 1 level
-  tower1Height = printer_state.countZSteps + originHeight + PROBE_LIFT*axis_steps_per_unit[0];
+    //record min z height
+    originHeight = printer_state.countZSteps;
+    //lift  Z
+    targetY = PROBE_RADIUS * cos(240 * DEG_TO_RAD);
+    targetX = PROBE_RADIUS * sin(240 * DEG_TO_RAD);
 
-  //lift 30mm Z
-  move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,homing_feedrate[0], true, false);
-  move_steps(-targetX*axis_steps_per_unit[0],-targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
-  targetY = (PROBE_RADIUS * cos(120 * DEG_TO_RAD));
-  targetX = (PROBE_RADIUS * sin(120 * DEG_TO_RAD));
+    move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,max_feedrate[0], true, false);
+    move_steps(targetX*axis_steps_per_unit[0],targetY*axis_steps_per_unit[0],0,0,max_feedrate[0], true, false);
+    printer_state.countZSteps = 0;
+    //probe tower 1 
+    move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
+    //record tower 1 level
+    tower1Height = printer_state.countZSteps + originHeight + PROBE_LIFT*axis_steps_per_unit[0];
 
-  move_steps(targetX*axis_steps_per_unit[0],targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
-  printer_state.countZSteps = 0;
-  //probe tower 2 
-  move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
-  //record tower 2 level
-  tower2Height = printer_state.countZSteps + tower1Height + PROBE_LIFT*axis_steps_per_unit[0];
+    //lift Z
+    move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,max_feedrate[0], true, false);
+    move_steps(-targetX*axis_steps_per_unit[0],-targetY*axis_steps_per_unit[0],0,0,max_feedrate[0], true, false);
+    targetY = (PROBE_RADIUS * cos(120 * DEG_TO_RAD));
+    targetX = (PROBE_RADIUS * sin(120 * DEG_TO_RAD));
 
-  //lift 30mm Z
-  move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,homing_feedrate[0], true, false);
-  move_steps(-targetX*axis_steps_per_unit[0],-targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
-  targetY =  (PROBE_RADIUS * cos(0 * DEG_TO_RAD));
-  targetX =  (PROBE_RADIUS * sin(0 * DEG_TO_RAD));
-  move_steps(targetX*axis_steps_per_unit[0],targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
-  printer_state.countZSteps = 0;
-  //probe tower 3 
-  move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
-  //record tower 3 level
-  tower3Height = printer_state.countZSteps + tower2Height + PROBE_LIFT*axis_steps_per_unit[0];
+    move_steps(targetX*axis_steps_per_unit[0],targetY*axis_steps_per_unit[0],0,0,max_feedrate[0], true, false);
+    printer_state.countZSteps = 0;
+    //probe tower 2 
+    move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
+    //record tower 2 level
+    tower2Height = printer_state.countZSteps + tower1Height + PROBE_LIFT*axis_steps_per_unit[0];
 
-  //retract probe
-  move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,homing_feedrate[0], true, false);
-  move_steps(-targetX*axis_steps_per_unit[0],-targetY*axis_steps_per_unit[0],0,0,homing_feedrate[0], true, false);
-  move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true); // lower until probe contacts
-  move_steps(0,0,-10*axis_steps_per_unit[0],0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, false); // push probe retraction amount
+    //lift Z
+    move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,max_feedrate[0], true, false);
+    move_steps(-targetX*axis_steps_per_unit[0],-targetY*axis_steps_per_unit[0],0,0,max_feedrate[0], true, false);
+    targetY =  (PROBE_RADIUS * cos(0 * DEG_TO_RAD));
+    targetX =  (PROBE_RADIUS * sin(0 * DEG_TO_RAD));
+    move_steps(targetX*axis_steps_per_unit[0],targetY*axis_steps_per_unit[0],0,0,max_feedrate[0], true, false);
+    printer_state.countZSteps = 0;
+    //probe tower 3 
+    move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true);
+    //record tower 3 level
+    tower3Height = printer_state.countZSteps + tower2Height + PROBE_LIFT*axis_steps_per_unit[0];
 
-  //return probe endstop logic to normal
-  printer_state.probing = false;
+    //retract probe
+    move_steps(0,0,48*axis_steps_per_unit[0],0,max_feedrate[0], true, false);
+    //move_steps(-targetX*axis_steps_per_unit[0],-targetY*axis_steps_per_unit[0],0,0,max_feedrate[0], true, false);
 
-  //calculate 3 tower trim levels
-  OUT_P_FX_LN("Origin Height:", originHeight/axis_steps_per_unit[0], 3); 
-  long lowestTower = min(tower1Height,min(tower2Height,tower3Height));
-  OUT_P_FX_LN("T1D:", (tower1Height-lowestTower) / axis_steps_per_unit[0], 3); 
-  OUT_P_FX_LN("T2D:", (tower2Height-lowestTower) / axis_steps_per_unit[0], 3); 
-  OUT_P_FX_LN("T3D:", (tower3Height-lowestTower) / axis_steps_per_unit[0], 3); 
+    //move_steps(0,0,-2*printer_state.zMaxSteps,0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, true); // lower until probe contacts
+    //move_steps(0,0,-PROBE_RETRACT_DISTANCE*axis_steps_per_unit[0],0,homing_feedrate[0]/ENDSTOP_X_RETEST_REDUCTION_FACTOR, true, false); // push probe retraction amount
+    //move_steps(0,0,PROBE_LIFT*axis_steps_per_unit[0],0,max_feedrate[0], true, false);
+    //home_axis(true,true,true);
 
-  OUT_P_FX_LN("T1CV:", ((tower1Height-lowestTower) / axis_steps_per_unit[0])* ( printer_state.delta_radius/ PROBE_RADIUS), 3); 
-  OUT_P_FX_LN("T2CV:", ((tower2Height-lowestTower) / axis_steps_per_unit[0])* ( printer_state.delta_radius/ PROBE_RADIUS), 3); 
-  OUT_P_FX_LN("T3CV:", ((tower3Height-lowestTower) / axis_steps_per_unit[0])* ( printer_state.delta_radius/ PROBE_RADIUS), 3); 
+    //return probe endstop logic to normal
+    printer_state.probing = false;
 
-  //check if origin is on plane with tower probes
-  float centerAverage = (tower1Height + tower2Height + tower3Height)/3;
-  OUT_P_FX_LN("Origin Offset:", (centerAverage - originHeight)/axis_steps_per_unit[0], 3); 
+    //calculate 3 tower trim levels
+    float centerAverage = (tower1Height + tower2Height + tower3Height)/3;
 
-  //if not calculate new delta radius
-  //apply trim levels
-  //home axis 
-  //end
+    long lowestTower = min(tower1Height,min(tower2Height,tower3Height));
+    OUT_P_FX_LN("Origin Offset:", (centerAverage - originHeight)/axis_steps_per_unit[0], 3); 
 
-  //if it is
-  //move to origin, at z= greatest trim amount
-  //printer_state.destinationSteps[0] = 0;
-  //printer_state.destinationSteps[1] = 0;
-  //printer_state.destinationSteps[2] = 0;//TODO origin probe + highest trim
-  //split_delta_move(true,false,false);
-  //apply trim levels
-  //move to z0
-  //end
+    OUT_P_FX_LN("T1CV:", ((tower1Height-lowestTower) / axis_steps_per_unit[0])* ( printer_state.delta_radius/ PROBE_RADIUS), 3); 
+    OUT_P_FX_LN("T2CV:", ((tower2Height-lowestTower) / axis_steps_per_unit[0])* ( printer_state.delta_radius/ PROBE_RADIUS), 3); 
+    OUT_P_FX_LN("T3CV:", ((tower3Height-lowestTower) / axis_steps_per_unit[0])* ( printer_state.delta_radius/ PROBE_RADIUS), 3); 
 
+    //check if origin is on plane with tower probes
+    OUT_P_FX_LN("Origin Height:", abs( originHeight/axis_steps_per_unit[0]) + PROBE_TIP_OFFSET, 3); 
+
+
+    //if not calculate new delta radius
+    //apply trim levels
+    //home axis 
+    //end
+
+    //if it is
+    //move to origin, at z= greatest trim amount
+    //printer_state.destinationSteps[0] = 0;
+    //printer_state.destinationSteps[1] = 0;
+    //printer_state.destinationSteps[2] = 0;//TODO origin probe + highest trim
+    //split_delta_move(true,false,false);
+    //apply trim levels
+    //move to z0
+    //end
+  } else {
+    //if deploy hasn't triggered the end stop give an error
+    OUT_P_LN("Probe not deployed, calibration aborted!");
+  }
 }
 
 void delta_move_to_top_endstops(float feedrate) {
