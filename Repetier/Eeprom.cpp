@@ -358,6 +358,9 @@ void epr_eeprom_reset() {
   printer_state.tower2_trim = TOWER2_TRIM;
   printer_state.tower3_trim = TOWER3_TRIM;
   printer_state.delta_radius = DELTA_RADIUS;
+  printer_state.delta_diagonal_rod = DELTA_DIAGONAL_ROD;
+  printer_state.delta_diagonal_rod_steps_squared = DELTA_DIAGONAL_ROD_STEPS_SQUARED;
+
 #endif
 
   extruder_select(current_extruder->id);
@@ -396,6 +399,7 @@ void epr_data_to_eeprom(byte corrupted) {
   epr_set_float(EPR_TOWER2_TRIM,printer_state.tower2_trim);
   epr_set_float(EPR_TOWER3_TRIM,printer_state.tower3_trim);
   epr_set_float(EPR_DELTA_RADIUS,printer_state.delta_radius);
+  epr_set_float(EPR_DELTA_DIAGONAL_ROD,printer_state.delta_diagonal_rod);
 #endif  
 #if USE_OPS==1
   epr_set_float(EPR_OPS_MIN_DISTANCE,printer_state.opsMinDistance);
@@ -518,7 +522,9 @@ void epr_eeprom_to_data() {
   printer_state.tower2_trim = epr_get_float(EPR_TOWER2_TRIM);
   printer_state.tower3_trim = epr_get_float(EPR_TOWER3_TRIM);
   printer_state.delta_radius = epr_get_float(EPR_DELTA_RADIUS);
-  printer_state.delta_radius_steps = AXIS_STEPS_PER_MM * printer_state.delta_radius;
+  printer_state.delta_diagonal_rod = epr_get_float(EPR_DELTA_DIAGONAL_ROD);
+  printer_state.delta_diagonal_rod_steps_squared = (printer_state.delta_diagonal_rod * axis_steps_per_unit[0] )*(printer_state.delta_diagonal_rod * axis_steps_per_unit[0] );
+  printer_state.delta_radius_steps = axis_steps_per_unit[0] * printer_state.delta_radius;
   printer_state.delta_tower1_x_steps = -SIN_60*printer_state.delta_radius_steps;
   printer_state.delta_tower1_y_steps = -COS_60*printer_state.delta_radius_steps;
   printer_state.delta_tower2_x_steps = SIN_60*printer_state.delta_radius_steps;
@@ -698,6 +704,7 @@ void epr_output_settings() {
   epr_out_float(EPR_TOWER2_TRIM,PSTR("Y tower soft home offset [mm]"));
   epr_out_float(EPR_TOWER3_TRIM,PSTR("Z tower soft home offset [mm]"));
   epr_out_float(EPR_DELTA_RADIUS,PSTR("delta radius [mm]"));
+  epr_out_float(EPR_DELTA_DIAGONAL_ROD,PSTR("delta rod length [mm]"));
 #endif  
 #ifdef RAMP_ACCELERATION
   //epr_out_float(EPR_X_MAX_START_SPEED,PSTR("X-axis start speed [mm/s]"));

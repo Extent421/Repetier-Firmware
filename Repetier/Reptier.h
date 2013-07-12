@@ -678,6 +678,8 @@ typedef struct {
   float delta_tower2_y_steps;
   float delta_tower3_x_steps;
   float delta_tower3_y_steps;
+  float delta_diagonal_rod_steps_squared;
+  float delta_diagonal_rod;
 
   long currentDeltaPositionSteps[4];
   long maxDeltaPositionSteps;

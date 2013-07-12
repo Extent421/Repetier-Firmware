@@ -80,6 +80,7 @@ have problems with other modules using the eeprom */
 #define EPR_TOWER2_TRIM           173
 #define EPR_TOWER3_TRIM           177
 #define EPR_DELTA_RADIUS          181
+#define EPR_DELTA_DIAGONAL_ROD    185
 
 #define EEPROM_EXTRUDER_OFFSET 200
 // bytes per extruder needed, leave some space for future development

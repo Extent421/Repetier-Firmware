@@ -506,6 +506,8 @@ SET_OUTPUT(ANALYZER_CH7);
   printer_state.tower2_trim = TOWER2_TRIM;
   printer_state.tower3_trim = TOWER3_TRIM;
   printer_state.delta_radius = DELTA_RADIUS;
+  printer_state.delta_diagonal_rod_steps_squared = DELTA_DIAGONAL_ROD_STEPS_SQUARED;
+  printer_state.delta_diagonal_rod = DELTA_DIAGONAL_ROD;
   printer_state.delta_radius_steps = AXIS_STEPS_PER_MM * printer_state.delta_radius;
   printer_state.delta_tower1_x_steps = -SIN_60*printer_state.delta_radius_steps;
   printer_state.delta_tower1_y_steps = -COS_60*printer_state.delta_radius_steps;
