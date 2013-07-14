@@ -224,7 +224,7 @@ void probe_bed(){
     OUT_P_FX_LN("T2trim:", t2Trim, 3); 
     OUT_P_FX_LN("T3trim:", t3Trim, 3);
     printer_state.delta_radius = ((centerAverage - originHeight)/axis_steps_per_unit[0])/DELTA_RADIUS_CORRECTION_FACTOR + printer_state.delta_radius;
-    printer_state.delta_radius_steps = axis_steps_per_unit[0] * printer_state.delta_radius
+    printer_state.delta_radius_steps = axis_steps_per_unit[0] * printer_state.delta_radius;
     printer_state.tower1_trim = t1Trim ; 
     printer_state.tower2_trim = t2Trim ; 
     printer_state.tower3_trim = t3Trim ; 
